@@ -37,13 +37,15 @@ class TicketRepository:
                 cursor.execute("SELECT 1")
 
     def list_tickets(self, status: str | None = None) -> list[dict]:
-        query = """
+        where_clause = "WHERE t.status = %s" if status is not None else ""
+        parameters = (status,) if status is not None else ()
+        query = f"""
             SELECT
                 t.ticket_id, t.title, t.status, t.priority, t.created_by,
                 t.created_at, t.updated_at, COUNT(m.message_id)::integer AS message_count
             FROM support_app.tickets AS t
             LEFT JOIN support_app.ticket_messages AS m ON m.ticket_id = t.ticket_id
-            WHERE (%s IS NULL OR t.status = %s)
+            {where_clause}
             GROUP BY t.ticket_id
             ORDER BY
                 CASE t.status WHEN 'open' THEN 1 WHEN 'in_progress' THEN 2 ELSE 3 END,
@@ -52,7 +54,7 @@ class TicketRepository:
         """
         with self.database.connection() as connection:
             with connection.cursor() as cursor:
-                cursor.execute(query, (status, status))
+                cursor.execute(query, parameters)
                 return list(cursor.fetchall())
 
     def get_ticket(self, ticket_id: UUID) -> dict:

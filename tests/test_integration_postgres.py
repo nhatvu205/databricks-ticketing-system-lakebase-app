@@ -7,6 +7,7 @@ from uuid import UUID
 
 import pytest
 
+from support_app import create_app
 from support_app.db import LakebaseDatabase
 from support_app.repository import TicketNotFound, TicketRepository
 
@@ -19,6 +20,8 @@ def test_schema_seed_and_crud(monkeypatch):
     try:
         with database.connection() as connection:
             with connection.cursor() as cursor:
+                cursor.execute("SELECT current_database() AS database_name")
+                assert cursor.fetchone()["database_name"].endswith("_test")
                 cursor.execute("DROP SCHEMA IF EXISTS support_app CASCADE")
 
         repository.initialize()
@@ -30,6 +33,10 @@ def test_schema_seed_and_crud(monkeypatch):
         tickets = repository.list_tickets()
         assert len(tickets) == 3
         assert all(ticket["message_count"] >= 2 for ticket in tickets)
+        assert sum(ticket["message_count"] for ticket in tickets) == 6
+        open_tickets = repository.list_tickets("open")
+        assert len(open_tickets) == 1
+        assert open_tickets[0]["status"] == "open"
 
         ticket_id = repository.create_ticket("Integration persistence check", "high", "ci@example.com")
         assert isinstance(ticket_id, UUID)
@@ -40,6 +47,13 @@ def test_schema_seed_and_crud(monkeypatch):
         assert ticket["status"] == "in_progress"
         assert ticket["priority"] == "high"
         assert len(repository.get_messages(ticket_id)) == 1
+        assert any(item["ticket_id"] == ticket_id for item in repository.list_tickets("in_progress"))
+
+        missing_ticket_id = UUID("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")
+        with pytest.raises(TicketNotFound):
+            repository.get_ticket(missing_ticket_id)
+        with pytest.raises(TicketNotFound):
+            repository.update_status(missing_ticket_id, "resolved")
 
         with pytest.raises(TicketNotFound):
             repository.add_message(
@@ -47,5 +61,15 @@ def test_schema_seed_and_crud(monkeypatch):
                 "This foreign key must fail.",
                 "ci@example.com",
             )
+
+        production_app = create_app({"TESTING": True, "SECRET_KEY": "integration-secret"})
+        production_repository = production_app.extensions["ticket_repository"]
+        try:
+            client = production_app.test_client()
+            assert client.get("/healthz").get_json() == {"status": "ok"}
+            assert client.get("/").status_code == 200
+            assert client.get(f"/tickets/{ticket_id}").status_code == 200
+        finally:
+            production_repository.database.close()
     finally:
         database.close()

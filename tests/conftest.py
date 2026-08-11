@@ -46,6 +46,8 @@ class FakeRepository:
             raise DatabaseUnavailable()
 
     def list_tickets(self, status=None):
+        if self.unavailable:
+            raise DatabaseUnavailable()
         values = list(self.tickets.values())
         return [ticket for ticket in values if status is None or ticket["status"] == status]
 

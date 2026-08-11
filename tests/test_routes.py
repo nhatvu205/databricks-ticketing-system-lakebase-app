@@ -47,9 +47,40 @@ def test_ticket_detail_message_and_status_update(client, repository):
     assert repository.get_ticket(ticket_id)["status"] == "resolved"
 
 
+def test_invalid_message_and_status_do_not_mutate_ticket(client, repository):
+    ticket_id = repository.ticket_id
+    message_count = len(repository.messages[ticket_id])
+
+    message_response = client.post(
+        f"/tickets/{ticket_id}/messages",
+        data={"message_text": "   "},
+        follow_redirects=True,
+    )
+    assert message_response.status_code == 200
+    assert b"Message must contain" in message_response.data
+    assert len(repository.messages[ticket_id]) == message_count
+
+    status_response = client.post(
+        f"/tickets/{ticket_id}/status",
+        data={"status": "deleted"},
+        follow_redirects=True,
+    )
+    assert status_response.status_code == 200
+    assert b"Choose a valid ticket status" in status_response.data
+    assert repository.get_ticket(ticket_id)["status"] == "open"
+
+
 def test_unknown_ticket_returns_404(client):
     response = client.get("/tickets/eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")
     assert response.status_code == 404
+
+
+def test_database_failure_renders_sanitized_503(client, repository):
+    repository.unavailable = True
+    response = client.get("/")
+    assert response.status_code == 503
+    assert b"support data store is waking up or unavailable" in response.data
+    assert b"DatabaseUnavailable" not in response.data
 
 
 def test_healthz_reflects_database_availability(client, repository):
