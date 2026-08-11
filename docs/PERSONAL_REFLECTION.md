@@ -3,7 +3,7 @@
 ## Submission materials
 
 - Databricks App URL: [Support Desk](https://ticketing-system-lakebase-app-7474654810445963.aws.databricksapps.com)
-- Source code: [lakebase-support-ticketing-source.zip](../lakebase-support-ticketing-source.zip)
+- Source code archive to attach separately: `lakebase-support-ticketing-source.zip`
 
 ## Deployed application evidence
 
