@@ -49,7 +49,7 @@ INSERT INTO support_app.ticket_messages (
     (
         '22222222-aaaa-4222-8222-222222222222',
         '22222222-2222-4222-8222-222222222222',
-        'Revenue totals still show yesterday\'s data after the morning refresh.',
+        'Revenue totals still show yesterday''s data after the morning refresh.',
         'jamie.lee@example.com',
         '2026-01-16 09:05:00+00'
     ),
