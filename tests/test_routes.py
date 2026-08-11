@@ -6,6 +6,7 @@ def test_index_lists_ticket_and_stats(client):
     assert response.status_code == 200
     assert b"Test VPN access" in response.data
     assert b"Total tickets" in response.data
+    assert b"Lakebase-powered" not in response.data
 
 
 def test_index_rejects_unknown_status_filter(client):
@@ -47,6 +48,19 @@ def test_ticket_detail_message_and_status_update(client, repository):
     assert repository.get_ticket(ticket_id)["status"] == "resolved"
 
 
+def test_delete_ticket_is_post_only_and_removes_messages(client, repository):
+    ticket_id = repository.ticket_id
+
+    assert client.get(f"/tickets/{ticket_id}/delete").status_code == 405
+
+    response = client.post(f"/tickets/{ticket_id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Ticket and its messages were deleted." in response.data
+    assert ticket_id not in repository.tickets
+    assert ticket_id not in repository.messages
+    assert repository.get_stats()["total"] == 0
+
+
 def test_invalid_message_and_status_do_not_mutate_ticket(client, repository):
     ticket_id = repository.ticket_id
     message_count = len(repository.messages[ticket_id])
@@ -71,8 +85,9 @@ def test_invalid_message_and_status_do_not_mutate_ticket(client, repository):
 
 
 def test_unknown_ticket_returns_404(client):
-    response = client.get("/tickets/eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")
-    assert response.status_code == 404
+    missing_ticket_id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+    assert client.get(f"/tickets/{missing_ticket_id}").status_code == 404
+    assert client.post(f"/tickets/{missing_ticket_id}/delete").status_code == 404
 
 
 def test_database_failure_renders_sanitized_503(client, repository):

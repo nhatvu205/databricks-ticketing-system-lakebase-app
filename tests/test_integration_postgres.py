@@ -49,6 +49,27 @@ def test_schema_seed_and_crud(monkeypatch):
         assert len(repository.get_messages(ticket_id)) == 1
         assert any(item["ticket_id"] == ticket_id for item in repository.list_tickets("in_progress"))
 
+        production_app = create_app({"TESTING": True, "SECRET_KEY": "integration-secret"})
+        production_repository = production_app.extensions["ticket_repository"]
+        try:
+            client = production_app.test_client()
+            assert client.get("/healthz").get_json() == {"status": "ok"}
+            assert client.get("/").status_code == 200
+            assert client.get(f"/tickets/{ticket_id}").status_code == 200
+        finally:
+            production_repository.database.close()
+
+        repository.delete_ticket(ticket_id)
+        with pytest.raises(TicketNotFound):
+            repository.get_ticket(ticket_id)
+        with database.connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT COUNT(*)::integer AS count FROM support_app.ticket_messages WHERE ticket_id = %s",
+                    (ticket_id,),
+                )
+                assert cursor.fetchone()["count"] == 0
+
         missing_ticket_id = UUID("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")
         with pytest.raises(TicketNotFound):
             repository.get_ticket(missing_ticket_id)
@@ -61,15 +82,5 @@ def test_schema_seed_and_crud(monkeypatch):
                 "This foreign key must fail.",
                 "ci@example.com",
             )
-
-        production_app = create_app({"TESTING": True, "SECRET_KEY": "integration-secret"})
-        production_repository = production_app.extensions["ticket_repository"]
-        try:
-            client = production_app.test_client()
-            assert client.get("/healthz").get_json() == {"status": "ok"}
-            assert client.get("/").status_code == 200
-            assert client.get(f"/tickets/{ticket_id}").status_code == 200
-        finally:
-            production_repository.database.close()
     finally:
         database.close()

@@ -71,6 +71,15 @@
       <span>In progress</span><strong>{{ stats.in_progress }}</strong>
       <span>Resolved</span><strong>{{ stats.resolved }}</strong>
     </section>
+
+    <section class="panel danger-panel">
+      <p class="eyebrow">Danger zone</p>
+      <h2>Delete ticket</h2>
+      <p class="muted">This permanently removes the ticket and every message in its conversation.</p>
+      <form method="post" action="{{ url_for('delete_ticket', ticket_id=ticket.ticket_id) }}" data-confirm="Delete this ticket and all of its messages? This cannot be undone.">
+        <button class="button button-danger" type="submit">Delete ticket</button>
+      </form>
+    </section>
   </aside>
 </section>
 {% endblock %}

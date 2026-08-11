@@ -111,6 +111,12 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             flash("Ticket status updated.", "success")
         return redirect(url_for("ticket_detail", ticket_id=ticket_id))
 
+    @app.post("/tickets/<uuid:ticket_id>/delete")
+    def delete_ticket(ticket_id: UUID):
+        repository.delete_ticket(ticket_id)
+        flash("Ticket and its messages were deleted.", "success")
+        return redirect(url_for("index"))
+
     @app.get("/healthz")
     def healthz():
         try:

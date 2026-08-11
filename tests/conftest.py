@@ -90,6 +90,11 @@ class FakeRepository:
     def update_status(self, ticket_id, status):
         self.get_ticket(ticket_id)["status"] = status
 
+    def delete_ticket(self, ticket_id):
+        self.get_ticket(ticket_id)
+        del self.tickets[ticket_id]
+        del self.messages[ticket_id]
+
     def get_stats(self):
         values = list(self.tickets.values())
         return {

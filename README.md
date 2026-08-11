@@ -8,6 +8,7 @@ A small internal-support application built with Flask, Databricks Apps, and Lake
 - View a ticket's complete message history.
 - Create a ticket with priority.
 - Add messages and update ticket status.
+- Delete a ticket with a confirmation step; its messages are removed atomically.
 - Show live ticket statistics.
 - Seed three tickets with two messages each on the first deployment.
 - Use the Databricks App service principal and rotating OAuth database credentials; no password is committed.

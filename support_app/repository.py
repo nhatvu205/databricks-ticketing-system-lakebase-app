@@ -136,6 +136,22 @@ class TicketRepository:
                     if cursor.fetchone() is None:
                         raise TicketNotFound()
 
+    def delete_ticket(self, ticket_id: UUID) -> None:
+        """Delete a ticket and its messages using the schema's cascade rule."""
+        with self.database.connection() as connection:
+            with connection.transaction():
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        DELETE FROM support_app.tickets
+                        WHERE ticket_id = %s
+                        RETURNING ticket_id
+                        """,
+                        (ticket_id,),
+                    )
+                    if cursor.fetchone() is None:
+                        raise TicketNotFound()
+
     def get_stats(self) -> dict:
         with self.database.connection() as connection:
             with connection.cursor() as cursor:
