@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Support Desk · {{ ticket.title }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('index') }}">← Back to tickets</a>
+
+<section class="detail-layout">
+  <article class="panel ticket-detail">
+    <div class="detail-heading">
+      <div>
+        <p class="eyebrow">Ticket {{ ticket.ticket_id }}</p>
+        <h1>{{ ticket.title }}</h1>
+        <p class="muted">Created by {{ ticket.created_by }} · {{ ticket.created_at.strftime('%b %d, %Y at %H:%M UTC') if ticket.created_at.strftime else ticket.created_at }}</p>
+      </div>
+      <div class="detail-badges">
+        <span class="badge badge-{{ ticket.status }}">{{ ticket.status|replace('_', ' ')|title }}</span>
+        <span class="priority priority-{{ ticket.priority }}">{{ ticket.priority|title }} priority</span>
+      </div>
+    </div>
+
+    <section class="message-section" aria-labelledby="conversation-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Conversation</p>
+          <h2 id="conversation-heading">Ticket messages</h2>
+        </div>
+        <span class="ticket-count">{{ messages|length }} total</span>
+      </div>
+      <ol class="message-timeline">
+        {% for message in messages %}
+          <li class="message-card">
+            <div class="message-avatar" aria-hidden="true">{{ message.author[0]|upper }}</div>
+            <div>
+              <div class="message-meta"><strong>{{ message.author }}</strong><time>{{ message.created_at.strftime('%b %d, %H:%M UTC') if message.created_at.strftime else message.created_at }}</time></div>
+              <p>{{ message.message_text }}</p>
+            </div>
+          </li>
+        {% else %}
+          <li class="empty-state"><h3>No messages yet</h3><p>Start the conversation below.</p></li>
+        {% endfor %}
+      </ol>
+    </section>
+  </article>
+
+  <aside class="detail-sidebar">
+    <section class="panel form-panel">
+      <p class="eyebrow">Workflow</p>
+      <h2>Update status</h2>
+      <form method="post" action="{{ url_for('update_status', ticket_id=ticket.ticket_id) }}" class="stack-form compact-form">
+        <label for="status">Current state</label>
+        <select id="status" name="status" required>
+          {% for status in statuses %}
+            <option value="{{ status }}" {% if status == ticket.status %}selected{% endif %}>{{ status|replace('_', ' ')|title }}</option>
+          {% endfor %}
+        </select>
+        <button class="button button-secondary" type="submit">Save status</button>
+      </form>
+    </section>
+
+    <section class="panel form-panel">
+      <p class="eyebrow">Reply</p>
+      <h2>Add a message</h2>
+      <form method="post" action="{{ url_for('add_message', ticket_id=ticket.ticket_id) }}" class="stack-form compact-form">
+        <label for="message_text">Message</label>
+        <textarea id="message_text" name="message_text" rows="6" maxlength="2000" required placeholder="Share an update, question, or resolution."></textarea>
+        <button class="button button-primary" type="submit">Add message</button>
+      </form>
+    </section>
+
+    <section class="panel compact-stats" aria-label="Queue statistics">
+      <span>Open queue</span><strong>{{ stats.open }}</strong>
+      <span>In progress</span><strong>{{ stats.in_progress }}</strong>
+      <span>Resolved</span><strong>{{ stats.resolved }}</strong>
+    </section>
+  </aside>
+</section>
+{% endblock %}

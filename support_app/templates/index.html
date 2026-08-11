@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Support Desk · Tickets{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Internal support operations</p>
+    <h1>Keep every support request moving.</h1>
+    <p class="hero-copy">Create, prioritize, and resolve tickets with a live Lakebase operational datastore.</p>
+  </div>
+  <a class="button button-primary" href="#new-ticket">Create ticket</a>
+</section>
+
+<section class="stat-grid" aria-label="Ticket statistics">
+  <article class="stat-card"><span>Total tickets</span><strong>{{ stats.total }}</strong></article>
+  <article class="stat-card stat-open"><span>Open</span><strong>{{ stats.open }}</strong></article>
+  <article class="stat-card stat-progress"><span>In progress</span><strong>{{ stats.in_progress }}</strong></article>
+  <article class="stat-card stat-resolved"><span>Resolved</span><strong>{{ stats.resolved }}</strong></article>
+</section>
+
+<section class="workspace-grid">
+  <div class="panel ticket-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Queue</p>
+        <h2>Support tickets</h2>
+      </div>
+      <span class="ticket-count">{{ tickets|length }} shown</span>
+    </div>
+
+    <nav class="filter-row" aria-label="Filter tickets by status">
+      <a class="filter {% if not selected_status %}is-active{% endif %}" href="{{ url_for('index') }}">All</a>
+      {% for status in statuses %}
+        <a class="filter {% if selected_status == status %}is-active{% endif %}" href="{{ url_for('index', status=status) }}">{{ status|replace('_', ' ')|title }}</a>
+      {% endfor %}
+    </nav>
+
+    <div class="ticket-list">
+      {% for ticket in tickets %}
+        <a class="ticket-row" href="{{ url_for('ticket_detail', ticket_id=ticket.ticket_id) }}">
+          <div class="ticket-row-main">
+            <h3>{{ ticket.title }}</h3>
+            <p>Opened by {{ ticket.created_by }} · {{ ticket.message_count }} message{{ '' if ticket.message_count == 1 else 's' }}</p>
+          </div>
+          <div class="ticket-row-meta">
+            <span class="badge badge-{{ ticket.status }}">{{ ticket.status|replace('_', ' ')|title }}</span>
+            <span class="priority priority-{{ ticket.priority }}">{{ ticket.priority|title }}</span>
+          </div>
+        </a>
+      {% else %}
+        <div class="empty-state">
+          <h3>No tickets match this filter</h3>
+          <p>Try another status or create a new ticket.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <aside class="panel form-panel" id="new-ticket">
+    <p class="eyebrow">New request</p>
+    <h2>Create a ticket</h2>
+    <p class="muted">Your Databricks sign-in is recorded as the requester.</p>
+    <form method="post" action="{{ url_for('create_ticket') }}" class="stack-form">
+      <label for="title">What do you need help with?</label>
+      <input id="title" name="title" type="text" minlength="3" maxlength="120" required placeholder="e.g. Unable to access the sales dashboard">
+
+      <label for="priority">Priority</label>
+      <select id="priority" name="priority" required>
+        {% for priority in priorities %}
+          <option value="{{ priority }}" {% if priority == 'medium' %}selected{% endif %}>{{ priority|title }}</option>
+        {% endfor %}
+      </select>
+
+      <button class="button button-primary" type="submit">Create ticket</button>
+    </form>
+  </aside>
+</section>
+{% endblock %}
