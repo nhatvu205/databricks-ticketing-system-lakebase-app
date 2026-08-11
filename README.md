@@ -26,11 +26,3 @@ The unit tests run without a database. To run the PostgreSQL integration test, s
 ## Deploy to Databricks
 
 Read [docs/DATABRICKS_DEPLOYMENT.md](docs/DATABRICKS_DEPLOYMENT.md) for the exact Free Edition setup and deployment steps. The only deployment-specific setting in `app.yaml` is `LAKEBASE_ENDPOINT`, resolved from the Lakebase app resource key `postgres`.
-
-## Submission artifacts
-
-Use the following files before submitting:
-
-- [docs/SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md)
-- [docs/REFLECTION_DRAFT.md](docs/REFLECTION_DRAFT.md)
-- `python scripts/package_submission.py`
