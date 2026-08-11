@@ -6,6 +6,16 @@
 
 A small internal-support application built with Flask, Databricks Apps, and Lakebase Autoscaling PostgreSQL. It stores tickets and ticket messages in Lakebase, not in application memory or hard-coded data.
 
+## Deployment evidence
+
+![Deployed Support Desk dashboard](docs/screenshots/landing.png)
+
+*The deployed dashboard displays live ticket statistics, status filters, and the ticket-creation form.*
+
+![Lakebase SQL Editor showing persisted sample records](docs/screenshots/lakebase_sample_records.png)
+
+*Lakebase SQL Editor query results show persisted ticket records with their status, priority, creator, and message count.*
+
 ## Features
 
 - View and filter tickets by status.
