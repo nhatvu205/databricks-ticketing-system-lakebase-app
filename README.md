@@ -1,5 +1,9 @@
 # Lakebase Support Ticketing App
 
+## Live application
+
+[Open the deployed Support Desk app](https://ticketing-system-lakebase-app-7474654810445963.aws.databricksapps.com)
+
 A small internal-support application built with Flask, Databricks Apps, and Lakebase Autoscaling PostgreSQL. It stores tickets and ticket messages in Lakebase, not in application memory or hard-coded data.
 
 ## Features
